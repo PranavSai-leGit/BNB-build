@@ -310,7 +310,30 @@ def lint_experiment_definition(definition: Dict[str, Any]) -> Dict[str, Any]:
             "node_id": None
         })
 
-    # 9. Informational Notes
+    # 9. Research Contract Alignment Verification
+    contract = definition.get("research_contract")
+    if contract:
+        from app.services.contract_service import validate_research_contract_alignment
+        contract_res = validate_research_contract_alignment(contract, definition)
+        for m in contract_res.get("mismatches", []):
+            sev = str(m.get("severity", "warning")).upper()
+            lint_finding = {
+                "id": m.get("id"),
+                "category": "Research Contract",
+                "severity": "ERROR" if sev == "ERROR" else "WARNING" if sev == "WARNING" else "INFO",
+                "title": m.get("title"),
+                "message": m.get("message"),
+                "recommendation": m.get("recommendation"),
+                "node_id": None
+            }
+            if sev == "ERROR":
+                errors.append(lint_finding)
+            elif sev == "WARNING":
+                warnings.append(lint_finding)
+            else:
+                info.append(lint_finding)
+
+    # 10. Informational Notes
     info.append({
         "id": "info_nodes_count",
         "category": "Summary",

@@ -9,7 +9,10 @@ from app.models.user import User
 from app.services.audit_service import record_audit_log
 
 def export_experiment_csv(db: Session, exp: Experiment, user: User) -> str:
-    sessions = db.query(ParticipantSession).filter(ParticipantSession.experiment_id == exp.id).all()
+    sessions = db.query(ParticipantSession).filter(
+        ParticipantSession.experiment_id == exp.id,
+        ParticipantSession.is_pilot == False
+    ).all()
     session_map = {s.id: s for s in sessions}
     session_ids = list(session_map.keys())
 
@@ -112,7 +115,10 @@ def export_experiment_csv(db: Session, exp: Experiment, user: User) -> str:
     return output.getvalue()
 
 def export_experiment_json(db: Session, exp: Experiment, user: User) -> Dict[str, Any]:
-    sessions = db.query(ParticipantSession).filter(ParticipantSession.experiment_id == exp.id).all()
+    sessions = db.query(ParticipantSession).filter(
+        ParticipantSession.experiment_id == exp.id,
+        ParticipantSession.is_pilot == False
+    ).all()
     session_ids = [s.id for s in sessions]
 
     versions = db.query(ExperimentVersion).filter(ExperimentVersion.experiment_id == exp.id).all()

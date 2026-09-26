@@ -114,8 +114,17 @@ def generate_research_passport(
         {"rule_type": "attention_fails", "threshold": 2, "action": "flag_review"}
     ])
 
+    contract = definition.get("research_contract")
+    from app.services.contract_service import validate_research_contract_alignment
+    contract_res = validate_research_contract_alignment(contract, definition)
+
     # Protocol checklist validation
     protocol_checks = {
+        "research_contract": {
+            "status": "verified" if contract and contract_res["summary"]["errors"] == 0 else "provisional" if contract else "optional",
+            "label": "Research Contract",
+            "details": f"v{contract.get('version', '1.0')} ({len(contract.get('independent_variables', []))} IVs, {len(contract.get('dependent_variables', []))} DVs)" if contract else "Unspecified"
+        },
         "protocol_definition": {
             "status": "verified" if len(nodes) > 0 else "missing",
             "label": "Protocol Definition",
@@ -168,10 +177,12 @@ def generate_research_passport(
         "retention_policy_days": experiment.retention_days,
         "timing_engine_version": "Cognera High-Res VSYNC Engine v2.4",
         "protocol_checklist": protocol_checks,
+        "research_contract": contract,
+        "research_contract_alignment": contract_res,
         "quality_rules": quality_rules,
         "participant_fields": participant_schema,
         "data_dictionary": data_dict,
-        "reproducibility_score": 100 if all(c["status"] == "verified" for c in protocol_checks.values()) else 92,
+        "reproducibility_score": 100 if all(c["status"] == "verified" for c in protocol_checks.values()) else 94,
         "passport_generated_at": datetime.utcnow().isoformat()
     }
 

@@ -10,19 +10,20 @@ from app.services.audit_service import record_audit_log
 def initialize_participant_session(
     db: Session,
     public_id: str,
-    req: InitSessionRequest
+    req: InitSessionRequest,
+    is_pilot: bool = False
 ) -> ParticipantSession:
     exp = db.query(Experiment).filter(Experiment.public_id == public_id).first()
     if not exp:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Experiment not found")
 
-    if exp.status != "published":
+    if not is_pilot and exp.status != "published":
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Experiment is not currently accepting participants (status is not published)"
         )
 
-    # Fetch published version
+    # Fetch targeted version
     version = db.query(ExperimentVersion).filter(
         ExperimentVersion.experiment_id == exp.id,
         ExperimentVersion.version_number == exp.current_version_number
@@ -38,7 +39,8 @@ def initialize_participant_session(
         experiment_version_id=version.id,
         participant_data=req.participant_data or {},
         browser_metadata=browser_dict,
-        status="started"
+        status="started",
+        is_pilot=is_pilot
     )
     db.add(session)
     db.commit()

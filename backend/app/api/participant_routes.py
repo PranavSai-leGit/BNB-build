@@ -17,9 +17,14 @@ from app.services.session_service import (
 router = APIRouter(prefix="/public", tags=["Participant Runtime"])
 
 @router.get("/experiments/{public_id}/info")
-def get_public_experiment_info(public_id: str, db: Session = Depends(get_db)):
+def get_public_experiment_info(
+    public_id: str,
+    mode: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
     exp = db.query(Experiment).filter(Experiment.public_id == public_id).first()
-    if not exp or exp.status != "published":
+    is_pilot = (mode == "pilot")
+    if not exp or (not is_pilot and exp.status != "published"):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Experiment not found or is currently not open to participants"
@@ -36,6 +41,7 @@ def get_public_experiment_info(public_id: str, db: Session = Depends(get_db)):
     defn = version.definition
     consent = defn.get("consent", {})
     settings = defn.get("settings", {})
+    preflight = defn.get("preflight_config", {})
     participant_schema = defn.get("participant_schema", [])
 
     return {
@@ -45,17 +51,21 @@ def get_public_experiment_info(public_id: str, db: Session = Depends(get_db)):
         "version_number": exp.current_version_number,
         "consent": consent,
         "settings": settings,
+        "preflight_config": preflight,
         "participant_schema": participant_schema,
-        "retention_days": exp.retention_days
+        "retention_days": exp.retention_days,
+        "is_pilot": is_pilot
     }
 
 @router.post("/experiments/{public_id}/session", response_model=InitSessionResponse)
 def create_session(
     public_id: str,
     req: InitSessionRequest,
+    mode: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
-    session = initialize_participant_session(db, public_id, req)
+    is_pilot = bool(req.is_pilot or mode == "pilot")
+    session = initialize_participant_session(db, public_id, req, is_pilot=is_pilot)
     exp = session.experiment
     version = session.experiment_version
 
@@ -68,7 +78,8 @@ def create_session(
         experiment_version_number=version.version_number,
         definition=defn,
         settings=defn.get("settings", {}),
-        consent=defn.get("consent", {})
+        consent=defn.get("consent", {}),
+        is_pilot=session.is_pilot
     )
 
 @router.post("/sessions/{session_id}/consent", response_model=ConsentResponse)

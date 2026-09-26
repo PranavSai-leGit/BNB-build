@@ -5,7 +5,10 @@ from app.models.participant import ParticipantSession, TrialResult
 from app.schemas.analytics import ExperimentAnalyticsOut, ReactionTimeBucket, ConditionMetric, SessionSummary
 
 def get_experiment_analytics(db: Session, exp: Experiment) -> ExperimentAnalyticsOut:
-    sessions = db.query(ParticipantSession).filter(ParticipantSession.experiment_id == exp.id).all()
+    sessions = db.query(ParticipantSession).filter(
+        ParticipantSession.experiment_id == exp.id,
+        ParticipantSession.is_pilot == False
+    ).all()
     session_ids = [s.id for s in sessions]
 
     total_participants = len(sessions)

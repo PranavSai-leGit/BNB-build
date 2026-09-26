@@ -20,6 +20,7 @@ class ParticipantSession(Base):
     status = Column(String, default="started", index=True) # started, consented, in_progress, completed, withdrawn, timed_out
     participant_data = Column(JSON_TYPE, default=dict) # Dynamic researcher participant schema fields
     browser_metadata = Column(JSON_TYPE, default=dict) # High-res timing diagnostics, viewport, refresh rate
+    is_pilot = Column(Boolean, default=False, index=True) # Separates pilot sessions from real study data
     started_at = Column(DateTime, default=datetime.utcnow)
     completed_at = Column(DateTime, nullable=True)
 

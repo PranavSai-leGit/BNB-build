@@ -296,3 +296,234 @@ def download_reproducibility_package(
         raise HTTPException(status_code=400, detail="Experiment version definition not found")
     return generate_reproducibility_package(exp, latest_ver)
 
+
+# ==================== 1. RESEARCH CONTRACT ====================
+
+@router.get("/{experiment_id}/contract")
+def get_research_contract_endpoint(
+    experiment_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Fetch the Research Contract and intended-vs-actual alignment report."""
+    from app.services.contract_service import get_default_research_contract, validate_research_contract_alignment
+    exp = get_experiment_by_id(db, experiment_id, current_user)
+    latest_ver = db.query(ExperimentVersion).filter(
+        ExperimentVersion.experiment_id == exp.id,
+        ExperimentVersion.version_number == exp.current_version_number
+    ).first()
+    if not latest_ver:
+        raise HTTPException(status_code=400, detail="Experiment version definition not found")
+
+    defn = latest_ver.definition or {}
+    contract = defn.get("research_contract")
+    if not contract:
+        contract = get_default_research_contract(defn)
+
+    alignment = validate_research_contract_alignment(contract, defn)
+    return {
+        "experiment_id": exp.id,
+        "version_number": latest_ver.version_number,
+        "contract": contract,
+        "alignment": alignment
+    }
+
+
+@router.post("/{experiment_id}/contract")
+def save_research_contract_endpoint(
+    experiment_id: str,
+    contract_data: dict,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Save or update the Research Contract for the active experiment version."""
+    from datetime import datetime
+    from app.services.contract_service import validate_research_contract_alignment
+    exp = get_experiment_by_id(db, experiment_id, current_user)
+    latest_ver = db.query(ExperimentVersion).filter(
+        ExperimentVersion.experiment_id == exp.id,
+        ExperimentVersion.version_number == exp.current_version_number
+    ).first()
+    if not latest_ver:
+        raise HTTPException(status_code=400, detail="Experiment version definition not found")
+
+    defn = dict(latest_ver.definition or {})
+    contract_data["updated_at"] = datetime.utcnow().isoformat()
+    defn["research_contract"] = contract_data
+    latest_ver.definition = defn
+    db.commit()
+
+    alignment = validate_research_contract_alignment(contract_data, defn)
+    record_audit_log(
+        db,
+        action="RESEARCH_CONTRACT_UPDATED",
+        actor=current_user,
+        experiment_id=exp.id,
+        metadata={"contract_version": contract_data.get("version", "1.0")}
+    )
+    return {
+        "message": "Research contract updated successfully",
+        "version_number": latest_ver.version_number,
+        "contract": contract_data,
+        "alignment": alignment
+    }
+
+
+# ==================== 2. ANALYSIS READINESS CHECKER ====================
+
+@router.get("/{experiment_id}/readiness")
+def get_analysis_readiness_endpoint(
+    experiment_id: str,
+    include_pilot: bool = Query(False, description="Include pilot sessions in check"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Check whether collected research data is ready for statistical analysis."""
+    from app.services.readiness_service import evaluate_analysis_readiness
+    exp = get_experiment_by_id(db, experiment_id, current_user)
+    latest_ver = db.query(ExperimentVersion).filter(
+        ExperimentVersion.experiment_id == exp.id,
+        ExperimentVersion.version_number == exp.current_version_number
+    ).first()
+    if not latest_ver:
+        raise HTTPException(status_code=400, detail="Experiment version definition not found")
+
+    return evaluate_analysis_readiness(exp, latest_ver, db, include_pilot=include_pilot)
+
+
+# ==================== 3. DATA QUALITY ROOT-CAUSE EXPLORER ====================
+
+@router.get("/{experiment_id}/quality/root-causes")
+def get_quality_root_causes_endpoint(
+    experiment_id: str,
+    include_pilot: bool = Query(False, description="Include pilot sessions in analysis"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Data Quality Root-Cause Explorer: Multi-dimensional signal investigation."""
+    from app.services.root_cause_service import analyze_quality_root_causes
+    exp = get_experiment_by_id(db, experiment_id, current_user)
+    return analyze_quality_root_causes(exp, db, include_pilot=include_pilot)
+
+
+# ==================== 4. PILOT MODE ====================
+
+@router.get("/{experiment_id}/pilot")
+def get_pilot_report_endpoint(
+    experiment_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Get dedicated Pilot Mode report and telemetry for experiment version."""
+    from app.services.pilot_service import generate_pilot_report
+    exp = get_experiment_by_id(db, experiment_id, current_user)
+    latest_ver = db.query(ExperimentVersion).filter(
+        ExperimentVersion.experiment_id == exp.id,
+        ExperimentVersion.version_number == exp.current_version_number
+    ).first()
+    if not latest_ver:
+        raise HTTPException(status_code=400, detail="Experiment version definition not found")
+
+    return generate_pilot_report(exp, latest_ver, db)
+
+
+@router.post("/{experiment_id}/pilot/simulate")
+def simulate_pilot_sessions_endpoint(
+    experiment_id: str,
+    participants: int = Query(5, ge=1, le=20),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Generate simulated pilot sessions to test branch coverage, timing, and conditions."""
+    from app.services.pilot_service import create_simulated_pilot_run
+    exp = get_experiment_by_id(db, experiment_id, current_user)
+    latest_ver = db.query(ExperimentVersion).filter(
+        ExperimentVersion.experiment_id == exp.id,
+        ExperimentVersion.version_number == exp.current_version_number
+    ).first()
+    if not latest_ver:
+        raise HTTPException(status_code=400, detail="Experiment version definition not found")
+
+    report = create_simulated_pilot_run(exp, latest_ver, db, participant_count=participants)
+    record_audit_log(
+        db,
+        action="PILOT_SIMULATION_EXECUTED",
+        actor=current_user,
+        experiment_id=exp.id,
+        metadata={"simulated_sessions": participants}
+    )
+    return report
+
+
+# ==================== 6. AUTOMATIC DATA DICTIONARY ====================
+
+@router.get("/{experiment_id}/dictionary")
+def get_data_dictionary_endpoint(
+    experiment_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Generate automatic data dictionary linked to experiment version."""
+    from app.services.dictionary_service import generate_automatic_data_dictionary
+    exp = get_experiment_by_id(db, experiment_id, current_user)
+    latest_ver = db.query(ExperimentVersion).filter(
+        ExperimentVersion.experiment_id == exp.id,
+        ExperimentVersion.version_number == exp.current_version_number
+    ).first()
+    if not latest_ver:
+        raise HTTPException(status_code=400, detail="Experiment version definition not found")
+
+    return generate_automatic_data_dictionary(exp, latest_ver, db)
+
+
+@router.get("/{experiment_id}/dictionary/csv")
+def download_data_dictionary_csv(
+    experiment_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Export data dictionary as downloadable CSV."""
+    from app.services.dictionary_service import generate_automatic_data_dictionary, export_data_dictionary_csv
+    exp = get_experiment_by_id(db, experiment_id, current_user)
+    latest_ver = db.query(ExperimentVersion).filter(
+        ExperimentVersion.experiment_id == exp.id,
+        ExperimentVersion.version_number == exp.current_version_number
+    ).first()
+    if not latest_ver:
+        raise HTTPException(status_code=400, detail="Experiment version definition not found")
+
+    dict_data = generate_automatic_data_dictionary(exp, latest_ver, db)
+    csv_str = export_data_dictionary_csv(dict_data)
+    filename = f"{exp.name.lower().replace(' ', '_')}_data_dictionary_v{latest_ver.version_number}.csv"
+    return Response(
+        content=csv_str,
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+
+@router.get("/{experiment_id}/dictionary/markdown")
+def download_data_dictionary_markdown(
+    experiment_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Export data dictionary as Markdown document."""
+    from app.services.dictionary_service import generate_automatic_data_dictionary, export_data_dictionary_markdown
+    exp = get_experiment_by_id(db, experiment_id, current_user)
+    latest_ver = db.query(ExperimentVersion).filter(
+        ExperimentVersion.experiment_id == exp.id,
+        ExperimentVersion.version_number == exp.current_version_number
+    ).first()
+    if not latest_ver:
+        raise HTTPException(status_code=400, detail="Experiment version definition not found")
+
+    dict_data = generate_automatic_data_dictionary(exp, latest_ver, db)
+    md_str = export_data_dictionary_markdown(dict_data)
+    filename = f"{exp.name.lower().replace(' ', '_')}_data_dictionary_v{latest_ver.version_number}.md"
+    return Response(
+        content=md_str,
+        media_type="text/markdown",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+

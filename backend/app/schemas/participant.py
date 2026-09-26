@@ -15,6 +15,7 @@ class BrowserMetadata(BaseModel):
 class InitSessionRequest(BaseModel):
     participant_data: Optional[Dict[str, Any]] = Field(default_factory=dict)
     browser_metadata: Optional[BrowserMetadata] = None
+    is_pilot: Optional[bool] = False
 
 class InitSessionResponse(BaseModel):
     session_id: str
@@ -25,6 +26,7 @@ class InitSessionResponse(BaseModel):
     definition: Dict[str, Any]
     settings: Dict[str, Any]
     consent: Dict[str, Any]
+    is_pilot: bool = False
 
 class ConsentSubmissionRequest(BaseModel):
     accepted: bool

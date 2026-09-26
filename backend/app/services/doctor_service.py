@@ -133,6 +133,42 @@ def analyze_experiment_doctor(definition: Dict[str, Any], experiment_meta: Dict[
                 "status": "active"
             })
 
+    # 7. Research Contract Alignment Review
+    contract = definition.get("research_contract")
+    if contract:
+        from app.services.contract_service import validate_research_contract_alignment
+        contract_res = validate_research_contract_alignment(contract, definition)
+        cov = contract_res.get("summary", {}).get("coverage_pct", 100)
+        
+        if cov < 100:
+            unmatched = [k for k, v in contract_res.get("condition_coverage", {}).items() if not v.get("matched")]
+            findings.append({
+                "id": "doc_contract_coverage_gap",
+                "category": "Methodology",
+                "severity": "recommendation",
+                "title": "Review recommended: Study design coverage gap",
+                "finding": f"Research contract specifies {len(unmatched)} conditions ({', '.join(unmatched)}) that are not yet manifested in the builder trials.",
+                "explanation": "Hypothesis testing requires empirical observations from each operationalized condition to evaluate the intended contrast.",
+                "suggestion": "Review whether pending trial blocks remain to be built or whether the research contract should be refined to match the current protocol.",
+                "status": "active"
+            })
+        
+        # Check power / trial count consideration for primary reaction time outcome
+        for dv in contract.get("dependent_variables", []):
+            if dv.get("measurement_type") == "reaction_time" and dv.get("role") == "primary":
+                min_cond_trials = min(condition_counts.values()) if condition_counts else 0
+                if 0 < min_cond_trials < 10:
+                    findings.append({
+                        "id": "doc_statistical_power_rt",
+                        "category": "Methodology",
+                        "severity": "consideration",
+                        "title": "Statistical power consideration for reaction time outcome",
+                        "finding": f"Primary outcome '{dv.get('name')}' has conditions with as few as {min_cond_trials} trials per session.",
+                        "explanation": "Within-subject reaction time distributions have inherent biological trial-to-trial variance. Designs with fewer than 15-20 trials per cell can yield noisy participant-level mean estimates.",
+                        "suggestion": "Consider increasing trial repetitions per condition or planning a higher participant sample size to achieve target statistical power.",
+                        "status": "active"
+                    })
+
     # If no issues found, offer a positive research-readiness finding
     if not findings:
         findings.append({
