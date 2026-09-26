@@ -17,6 +17,7 @@ import {
 import { experimentApi } from '../../api/experimentApi';
 import { Card } from '../../components/Card';
 import { Modal } from '../../components/Modal';
+import { Pagination } from '../../components/Pagination';
 
 interface QualitySignal {
   type: string;
@@ -63,6 +64,8 @@ export const DataQualityTab: React.FC<DataQualityTabProps> = ({ experimentId }) 
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSession, setSelectedSession] = useState<EvaluatedSession | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   // Custom Quality Rules Modal
   const [isRulesModalOpen, setIsRulesModalOpen] = useState(false);
@@ -122,6 +125,11 @@ export const DataQualityTab: React.FC<DataQualityTabProps> = ({ experimentId }) 
       s.session_id.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesFilter && matchesSearch;
   });
+
+  const paginatedSessions = filteredSessions.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
 
   return (
     <div className="space-y-6 animate-fade-in p-6 max-w-7xl mx-auto">
@@ -240,7 +248,10 @@ export const DataQualityTab: React.FC<DataQualityTabProps> = ({ experimentId }) 
               type="text"
               placeholder="Search by participant pseudonym (e.g. P-8A9F1B2C)..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
               className="w-full pl-10 pr-4 py-2 bg-cogni-panel border border-slate-800 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-cyan-500"
             />
           </div>
@@ -249,7 +260,10 @@ export const DataQualityTab: React.FC<DataQualityTabProps> = ({ experimentId }) 
             <Filter className="w-4 h-4 text-slate-400" />
             <select
               value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
+              onChange={(e) => {
+                setFilterStatus(e.target.value);
+                setCurrentPage(1);
+              }}
               className="bg-cogni-panel border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500"
             >
               <option value="all">All Quality Tiers</option>
@@ -284,7 +298,7 @@ export const DataQualityTab: React.FC<DataQualityTabProps> = ({ experimentId }) 
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60">
-                {filteredSessions.map((session) => (
+                {paginatedSessions.map((session) => (
                   <tr
                     key={session.session_id}
                     className="hover:bg-slate-800/30 transition-colors"
@@ -346,6 +360,17 @@ export const DataQualityTab: React.FC<DataQualityTabProps> = ({ experimentId }) 
                 ))}
               </tbody>
             </table>
+
+            {filteredSessions.length > pageSize && (
+              <Pagination
+                currentPage={currentPage}
+                totalItems={filteredSessions.length}
+                pageSize={pageSize}
+                onPageChange={setCurrentPage}
+                onPageSizeChange={setPageSize}
+                pageSizeOptions={[5, 10, 25, 50]}
+              />
+            )}
           </div>
         )}
       </div>

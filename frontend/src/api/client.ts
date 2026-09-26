@@ -37,10 +37,15 @@ export async function apiRequest<T = any>(
     let errorDetail = 'Request failed';
     let errorData = null;
     try {
-      errorData = await response.json();
-      errorDetail = errorData.detail || errorData.message || JSON.stringify(errorData);
+      const text = await response.text();
+      try {
+        errorData = JSON.parse(text);
+        errorDetail = errorData.detail || errorData.message || text;
+      } catch {
+        errorDetail = text || response.statusText || 'Request failed';
+      }
     } catch {
-      errorDetail = await response.text();
+      errorDetail = response.statusText || 'Request failed';
     }
     throw new ApiError(errorDetail, response.status, errorData);
   }

@@ -26,6 +26,7 @@ import {
   Activity,
   Calendar,
 } from 'lucide-react';
+import { Pagination } from '../../components/Pagination';
 
 export const AnalyticsDashboardPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -37,6 +38,8 @@ export const AnalyticsDashboardPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [exportingCsv, setExportingCsv] = useState(false);
   const [exportingJson, setExportingJson] = useState(false);
+  const [sessionPage, setSessionPage] = useState(1);
+  const [sessionPageSize, setSessionPageSize] = useState(10);
 
   useEffect(() => {
     experimentApi.list().then((list) => {
@@ -341,37 +344,50 @@ export const AnalyticsDashboardPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800 text-slate-300">
-                  {analytics.recent_sessions.map((s) => (
-                    <tr key={s.session_id} className="hover:bg-slate-800/30 transition-colors">
-                      <td className="py-3.5 px-4 font-mono font-semibold text-brand-300">
-                        {s.participant_id}
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <span
-                          className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${
-                            s.status === 'completed'
-                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
-                              : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
-                          }`}
-                        >
-                          {s.status}
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-4 font-mono">{s.trials_completed} trials</td>
-                      <td className="py-3.5 px-4 font-mono font-semibold text-slate-100">
-                        {s.avg_rt ? `${s.avg_rt} ms` : '—'}
-                      </td>
-                      <td className="py-3.5 px-4 font-mono">
-                        {s.accuracy !== null && s.accuracy !== undefined ? `${s.accuracy}%` : '—'}
-                      </td>
-                      <td className="py-3.5 px-4 text-slate-400">
-                        {new Date(s.started_at).toLocaleString()}
-                      </td>
-                    </tr>
-                  ))}
+                  {analytics.recent_sessions
+                    .slice((sessionPage - 1) * sessionPageSize, sessionPage * sessionPageSize)
+                    .map((s) => (
+                      <tr key={s.session_id} className="hover:bg-slate-800/30 transition-colors">
+                        <td className="py-3.5 px-4 font-mono font-semibold text-brand-300">
+                          {s.participant_id}
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${
+                              s.status === 'completed'
+                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                                : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
+                            }`}
+                          >
+                            {s.status}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4 font-mono">{s.trials_completed} trials</td>
+                        <td className="py-3.5 px-4 font-mono font-semibold text-slate-100">
+                          {s.avg_rt ? `${s.avg_rt} ms` : '—'}
+                        </td>
+                        <td className="py-3.5 px-4 font-mono">
+                          {s.accuracy !== null && s.accuracy !== undefined ? `${s.accuracy}%` : '—'}
+                        </td>
+                        <td className="py-3.5 px-4 text-slate-400">
+                          {new Date(s.started_at).toLocaleString()}
+                        </td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
             </div>
+
+            {analytics.recent_sessions.length > sessionPageSize && (
+              <Pagination
+                currentPage={sessionPage}
+                totalItems={analytics.recent_sessions.length}
+                pageSize={sessionPageSize}
+                onPageChange={setSessionPage}
+                onPageSizeChange={setSessionPageSize}
+                pageSizeOptions={[5, 10, 20, 50]}
+              />
+            )}
           </div>
         </>
       )}

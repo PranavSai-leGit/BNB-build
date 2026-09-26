@@ -2,10 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { analyticsApi } from '../../api/analyticsApi';
 import { AuditLog } from '../../types/analytics';
 import { ShieldCheck, Clock, FileText, Database, ArrowUpDown } from 'lucide-react';
+import { Pagination } from '../../components/Pagination';
 
 export const AuditTrailPage: React.FC = () => {
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   useEffect(() => {
     analyticsApi
@@ -41,6 +44,8 @@ export const AuditTrailPage: React.FC = () => {
     }
   };
 
+  const paginatedLogs = logs.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
@@ -64,45 +69,58 @@ export const AuditTrailPage: React.FC = () => {
         ) : logs.length === 0 ? (
           <div className="p-12 text-center text-slate-400">No audit records found.</div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-900/60 text-slate-400 uppercase font-mono tracking-wider text-[10px]">
-                <tr>
-                  <th className="py-3 px-4">Action</th>
-                  <th className="py-3 px-4">Actor</th>
-                  <th className="py-3 px-4">Experiment ID</th>
-                  <th className="py-3 px-4">Metadata</th>
-                  <th className="py-3 px-4">Timestamp (UTC)</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800 text-slate-300">
-                {logs.map((log) => (
-                  <tr key={log.id} className="hover:bg-slate-800/30 transition-colors">
-                    <td className="py-3.5 px-4">
-                      <span
-                        className={`inline-block px-2.5 py-0.5 rounded-full font-mono text-[10px] font-semibold border ${getActionBadge(
-                          log.action
-                        )}`}
-                      >
-                        {log.action}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4 font-medium text-slate-200">
-                      {log.actor_email || log.actor_id || 'SYSTEM'}
-                    </td>
-                    <td className="py-3.5 px-4 font-mono text-slate-400">
-                      {log.experiment_id || '—'}
-                    </td>
-                    <td className="py-3.5 px-4 font-mono text-[11px] text-slate-400 max-w-xs truncate">
-                      {JSON.stringify(log.metadata_json)}
-                    </td>
-                    <td className="py-3.5 px-4 font-mono text-slate-400">
-                      {new Date(log.timestamp).toUTCString()}
-                    </td>
+          <div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-900/60 text-slate-400 uppercase font-mono tracking-wider text-[10px]">
+                  <tr>
+                    <th className="py-3 px-4">Action</th>
+                    <th className="py-3 px-4">Actor</th>
+                    <th className="py-3 px-4">Experiment ID</th>
+                    <th className="py-3 px-4">Metadata</th>
+                    <th className="py-3 px-4">Timestamp (UTC)</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-800 text-slate-300">
+                  {paginatedLogs.map((log) => (
+                    <tr key={log.id} className="hover:bg-slate-800/30 transition-colors">
+                      <td className="py-3.5 px-4">
+                        <span
+                          className={`inline-block px-2.5 py-0.5 rounded-full font-mono text-[10px] font-semibold border ${getActionBadge(
+                            log.action
+                          )}`}
+                        >
+                          {log.action}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 font-medium text-slate-200">
+                        {log.actor_email || log.actor_id || 'SYSTEM'}
+                      </td>
+                      <td className="py-3.5 px-4 font-mono text-slate-400">
+                        {log.experiment_id || '—'}
+                      </td>
+                      <td className="py-3.5 px-4 font-mono text-[11px] text-slate-400 max-w-xs truncate">
+                        {JSON.stringify(log.metadata_json)}
+                      </td>
+                      <td className="py-3.5 px-4 font-mono text-slate-400">
+                        {new Date(log.timestamp).toUTCString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {logs.length > pageSize && (
+              <Pagination
+                currentPage={currentPage}
+                totalItems={logs.length}
+                pageSize={pageSize}
+                onPageChange={setCurrentPage}
+                onPageSizeChange={setPageSize}
+                pageSizeOptions={[5, 10, 25, 50]}
+              />
+            )}
           </div>
         )}
       </div>

@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { adminApi } from '../../api/adminApi';
 import { Card } from '../../components/Card';
+import { Pagination } from '../../components/Pagination';
 
 export const AdminPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'orgs' | 'settings'>('overview');
@@ -23,6 +24,14 @@ export const AdminPage: React.FC = () => {
   const [settings, setSettings] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Pagination states
+  const [usersPage, setUsersPage] = useState(1);
+  const [usersPageSize, setUsersPageSize] = useState(10);
+  const [orgsPage, setOrgsPage] = useState(1);
+  const [orgsPageSize, setOrgsPageSize] = useState(6);
+  const [auditPage, setAuditPage] = useState(1);
+  const [auditPageSize, setAuditPageSize] = useState(5);
 
   const fetchAdminData = () => {
     setLoading(true);
@@ -201,17 +210,30 @@ export const AdminPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/60 font-mono text-[11px]">
-                  {overview?.recent_audit_logs?.map((a: any) => (
-                    <tr key={a.id} className="hover:bg-slate-800/20">
-                      <td className="py-2.5 px-4 text-cyan-300 font-semibold">{a.action}</td>
-                      <td className="py-2.5 px-4 text-slate-400">{a.user_id || 'System'}</td>
-                      <td className="py-2.5 px-4 text-slate-500">
-                        {a.created_at ? new Date(a.created_at).toLocaleString() : '—'}
-                      </td>
-                    </tr>
-                  ))}
+                  {(overview?.recent_audit_logs || [])
+                    .slice((auditPage - 1) * auditPageSize, auditPage * auditPageSize)
+                    .map((a: any) => (
+                      <tr key={a.id} className="hover:bg-slate-800/20">
+                        <td className="py-2.5 px-4 text-cyan-300 font-semibold">{a.action}</td>
+                        <td className="py-2.5 px-4 text-slate-400">{a.user_id || 'System'}</td>
+                        <td className="py-2.5 px-4 text-slate-500">
+                          {a.created_at ? new Date(a.created_at).toLocaleString() : '—'}
+                        </td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
+
+              {(overview?.recent_audit_logs || []).length > auditPageSize && (
+                <Pagination
+                  currentPage={auditPage}
+                  totalItems={(overview?.recent_audit_logs || []).length}
+                  pageSize={auditPageSize}
+                  onPageChange={setAuditPage}
+                  onPageSizeChange={setAuditPageSize}
+                  pageSizeOptions={[5, 10, 20]}
+                />
+              )}
             </div>
           </Card>
         </div>
@@ -239,33 +261,46 @@ export const AdminPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60">
-                {users.map((u) => (
-                  <tr key={u.id} className="hover:bg-slate-800/20">
-                    <td className="py-3 px-4 font-semibold text-slate-200">{u.full_name}</td>
-                    <td className="py-3 px-4 text-slate-400 font-mono">{u.email}</td>
-                    <td className="py-3 px-4">
-                      <span
-                        className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold uppercase ${
-                          u.role === 'org_admin' || u.role === 'platform_admin'
-                            ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
-                            : 'bg-slate-800 text-slate-300'
-                        }`}
-                      >
-                        {u.role}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className="text-emerald-400 flex items-center gap-1 text-[11px]">
-                        <CheckCircle2 className="w-3 h-3" /> Active
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-slate-500 font-mono text-[11px]">
-                      {u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}
-                    </td>
-                  </tr>
-                ))}
+                {users
+                  .slice((usersPage - 1) * usersPageSize, usersPage * usersPageSize)
+                  .map((u) => (
+                    <tr key={u.id} className="hover:bg-slate-800/20">
+                      <td className="py-3 px-4 font-semibold text-slate-200">{u.full_name}</td>
+                      <td className="py-3 px-4 text-slate-400 font-mono">{u.email}</td>
+                      <td className="py-3 px-4">
+                        <span
+                          className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold uppercase ${
+                            u.role === 'org_admin' || u.role === 'platform_admin'
+                              ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                              : 'bg-slate-800 text-slate-300'
+                          }`}
+                        >
+                          {u.role}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className="text-emerald-400 flex items-center gap-1 text-[11px]">
+                          <CheckCircle2 className="w-3 h-3" /> Active
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-slate-500 font-mono text-[11px]">
+                        {u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
+
+            {users.length > usersPageSize && (
+              <Pagination
+                currentPage={usersPage}
+                totalItems={users.length}
+                pageSize={usersPageSize}
+                onPageChange={setUsersPage}
+                onPageSizeChange={setUsersPageSize}
+                pageSizeOptions={[5, 10, 25, 50]}
+              />
+            )}
           </div>
         </Card>
       )}
@@ -277,28 +312,42 @@ export const AdminPage: React.FC = () => {
             Research Organizations
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {orgs.map((org) => (
-              <div
-                key={org.id}
-                className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-2"
-              >
-                <div className="flex items-center justify-between">
-                  <h4 className="font-bold text-slate-100 text-sm">{org.name}</h4>
-                  <span className="text-[10px] font-mono text-slate-500 uppercase">{org.slug}</span>
-                </div>
-                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800/80 text-xs">
-                  <div>
-                    <span className="text-[10px] text-slate-500 uppercase font-mono">Members</span>
-                    <div className="font-bold text-slate-200">{org.member_count}</div>
+            {orgs
+              .slice((orgsPage - 1) * orgsPageSize, orgsPage * orgsPageSize)
+              .map((org) => (
+                <div
+                  key={org.id}
+                  className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-2"
+                >
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-bold text-slate-100 text-sm">{org.name}</h4>
+                    <span className="text-[10px] font-mono text-slate-500 uppercase">{org.slug}</span>
                   </div>
-                  <div>
-                    <span className="text-[10px] text-slate-500 uppercase font-mono">Studies</span>
-                    <div className="font-bold text-slate-200">{org.experiment_count}</div>
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800/80 text-xs">
+                    <div>
+                      <span className="text-[10px] text-slate-500 uppercase font-mono">Members</span>
+                      <div className="font-bold text-slate-200">{org.member_count}</div>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-slate-500 uppercase font-mono">Studies</span>
+                      <div className="font-bold text-slate-200">{org.experiment_count}</div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
           </div>
+
+          {orgs.length > orgsPageSize && (
+            <Pagination
+              currentPage={orgsPage}
+              totalItems={orgs.length}
+              pageSize={orgsPageSize}
+              onPageChange={setOrgsPage}
+              onPageSizeChange={setOrgsPageSize}
+              pageSizeOptions={[4, 6, 12, 24]}
+              className="rounded-xl border border-slate-800"
+            />
+          )}
         </Card>
       )}
 
