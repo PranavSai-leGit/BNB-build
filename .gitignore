@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+cognilab.db
+*.sqlite3
+.pytest_cache/
+uploads/*
+!uploads/.gitkeep
+
+# Node
+node_modules/
+dist/
+.DS_Store
+*.log
+.vscode/
