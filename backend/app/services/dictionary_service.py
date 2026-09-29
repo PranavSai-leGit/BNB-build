@@ -240,15 +240,15 @@ def export_data_dictionary_csv(dictionary_data: Dict[str, Any]) -> str:
     writer = csv.writer(output)
 
     headers = [
-        "Variable Name",
-        "Label",
-        "Type",
-        "Unit",
-        "Description",
-        "Allowed Values",
-        "Source",
-        "Outcome Role",
-        "Missing Value Meaning"
+        "variable_name",
+        "label",
+        "data_type",
+        "unit",
+        "description",
+        "allowed_values",
+        "source",
+        "outcome_role",
+        "missing_value_meaning"
     ]
     writer.writerow(headers)
 

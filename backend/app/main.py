@@ -42,18 +42,24 @@ app.add_middleware(
 # Mount uploads directory for stimuli assets
 os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
 app.mount("/api/v1/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
+app.mount("/v1/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads_v1")
 
-# Include Routers under API v1
+# Include Routers under both /api/v1 and /v1 prefixes for resilient routing
 api_prefix = settings.API_V1_STR
-app.include_router(auth_router, prefix=api_prefix)
-app.include_router(experiment_router, prefix=api_prefix)
-app.include_router(participant_router, prefix=api_prefix)
-app.include_router(analytics_router, prefix=api_prefix)
-app.include_router(stimulus_router, prefix=api_prefix)
-app.include_router(admin_router, prefix=api_prefix)
+for prefix in [api_prefix, "/v1"]:
+    app.include_router(auth_router, prefix=prefix)
+    app.include_router(experiment_router, prefix=prefix)
+    app.include_router(participant_router, prefix=prefix)
+    app.include_router(analytics_router, prefix=prefix)
+    app.include_router(stimulus_router, prefix=prefix)
+    app.include_router(admin_router, prefix=prefix)
 
+@app.get("/")
+@app.get("/api")
 @app.get("/health")
+@app.get("/api/health")
 @app.get(f"{api_prefix}/health")
+@app.get("/v1/health")
 def health_check():
     return {
         "status": "healthy",

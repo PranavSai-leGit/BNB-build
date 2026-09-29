@@ -96,6 +96,8 @@ class Settings(BaseSettings):
 
             return url
 
+        if os.getenv("VERCEL"):
+            return "sqlite:////tmp/cognera.db"
         return "sqlite:///./cognera.db"
 
 settings = Settings()
