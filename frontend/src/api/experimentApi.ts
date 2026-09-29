@@ -96,5 +96,42 @@ export const experimentApi = {
 
   downloadReproducibilityPackage: (id: string): Promise<any> =>
     apiRequest(`/experiments/${id}/passport/package`),
+
+  // 1. Research Contract
+  getContract: (id: string): Promise<any> =>
+    apiRequest(`/experiments/${id}/contract`),
+
+  saveContract: (id: string, contract: any): Promise<any> =>
+    apiRequest(`/experiments/${id}/contract`, {
+      method: 'POST',
+      body: JSON.stringify(contract),
+    }),
+
+  // 2. Analysis Readiness Checker
+  getReadiness: (id: string, includePilot: boolean = false): Promise<any> =>
+    apiRequest(`/experiments/${id}/readiness?include_pilot=${includePilot}`),
+
+  // 3. Data Quality Root-Cause Explorer
+  getRootCauses: (id: string, includePilot: boolean = false): Promise<any> =>
+    apiRequest(`/experiments/${id}/quality/root-causes?include_pilot=${includePilot}`),
+
+  // 4. Pilot Mode
+  getPilotReport: (id: string): Promise<any> =>
+    apiRequest(`/experiments/${id}/pilot`),
+
+  simulatePilot: (id: string, participants: number = 5): Promise<any> =>
+    apiRequest(`/experiments/${id}/pilot/simulate?participants=${participants}`, {
+      method: 'POST',
+    }),
+
+  // 6. Automatic Data Dictionary
+  getDataDictionary: (id: string): Promise<any> =>
+    apiRequest(`/experiments/${id}/dictionary`),
+
+  downloadDictionaryCsvUrl: (id: string): string =>
+    `/api/v1/experiments/${id}/dictionary/csv`,
+
+  downloadDictionaryMarkdownUrl: (id: string): string =>
+    `/api/v1/experiments/${id}/dictionary/markdown`,
 };
 

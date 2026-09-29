@@ -264,6 +264,28 @@ def generate_pilot_report(
             "rt_fatigue_slowing_ms": rt_slowing_ms
         },
         "actionable_findings": findings,
+        "findings": findings,
+        "metrics": {
+            "total_sessions": total_sessions,
+            "completed_sessions": completed_count,
+            "dropout_rate_pct": dropout_rate_pct,
+            "branch_coverage_pct": branch_coverage_pct,
+            "average_duration_seconds": avg_duration_sec,
+            "unreachable_nodes_count": len(unreachable_nodes),
+            "timing_warnings_count": timing_warnings_count
+        },
+        "summary": {
+            "total_pilot_sessions": total_sessions,
+            "completed_sessions": completed_count,
+            "avg_completion_time_minutes": round(avg_duration_sec / 60.0, 1),
+            "dropout_rate_pct": dropout_rate_pct,
+            "branch_coverage_pct": branch_coverage_pct
+        },
+        "branch_coverage": {
+            "branch_coverage_pct": branch_coverage_pct,
+            "all_nodes_reachable": len(unreachable_nodes) == 0,
+            "unreachable_nodes": unreachable_nodes
+        },
         "generated_at": datetime.utcnow().isoformat()
     }
 

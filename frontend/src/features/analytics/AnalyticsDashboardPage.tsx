@@ -27,6 +27,7 @@ import {
   Calendar,
 } from 'lucide-react';
 import { Pagination } from '../../components/Pagination';
+import { Select } from '../../components/Select';
 
 export const AnalyticsDashboardPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -124,17 +125,16 @@ export const AnalyticsDashboardPage: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <select
-            value={selectedExpId}
-            onChange={(e) => setSelectedExpId(e.target.value)}
-            className="bg-cogni-panel border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-brand-500 font-medium"
-          >
-            {experiments.map((exp) => (
-              <option key={exp.id} value={exp.id}>
-                {exp.name} ({exp.status})
-              </option>
-            ))}
-          </select>
+          <div className="w-64">
+            <Select
+              value={selectedExpId}
+              onChange={(val) => setSelectedExpId(val)}
+              options={experiments.map((exp) => ({
+                value: exp.id,
+                label: `${exp.name} (${exp.status})`,
+              }))}
+            />
+          </div>
 
           <button
             onClick={handleExportCsv}

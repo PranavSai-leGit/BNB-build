@@ -14,6 +14,7 @@ from app.services.analytics_service import get_experiment_analytics
 router = APIRouter(tags=["Analytics & Audit"])
 
 @router.get("/experiments/{experiment_id}/analytics", response_model=ExperimentAnalyticsOut)
+@router.get("/analytics/experiments/{experiment_id}", response_model=ExperimentAnalyticsOut)
 def get_analytics(
     experiment_id: str,
     db: Session = Depends(get_db),

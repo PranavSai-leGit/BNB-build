@@ -4,8 +4,13 @@ __pycache__/
 *$py.class
 venv/
 .env
-cognilab.db
+.env.*
+!.env.example
+*.db
+*.sqlite
 *.sqlite3
+cognilab.db
+cognera.db
 .pytest_cache/
 uploads/*
 !uploads/.gitkeep

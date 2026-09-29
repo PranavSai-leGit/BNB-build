@@ -1,6 +1,7 @@
 import React from 'react';
 import { ExperimentNode } from '../../types/experiment';
 import { Trash2, Copy, Settings2 } from 'lucide-react';
+import { Select } from '../../components/Select';
 
 interface NodePropertiesPanelProps {
   selectedNode: ExperimentNode | null;
@@ -122,15 +123,15 @@ export const NodePropertiesPanel: React.FC<NodePropertiesPanelProps> = ({
               <label className="block text-slate-300 font-semibold mb-1">
                 Stimulus Type
               </label>
-              <select
+              <Select
                 value={props.stimulus_type || 'text'}
-                onChange={(e) => handlePropChange('stimulus_type', e.target.value)}
-                className="w-full bg-cogni-card border border-slate-700 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-brand-500"
-              >
-                <option value="text">Text / Word</option>
-                <option value="image">Image Asset</option>
-                <option value="blank">Blank Screen</option>
-              </select>
+                onChange={(val) => handlePropChange('stimulus_type', val)}
+                options={[
+                  { value: 'text', label: 'Text / Word' },
+                  { value: 'image', label: 'Image Asset' },
+                  { value: 'blank', label: 'Blank Screen' },
+                ]}
+              />
             </div>
 
             {props.stimulus_type !== 'image' && props.stimulus_type !== 'blank' && (
@@ -198,14 +199,14 @@ export const NodePropertiesPanel: React.FC<NodePropertiesPanelProps> = ({
               <label className="block text-slate-300 font-semibold mb-1">
                 Response Mechanism
               </label>
-              <select
+              <Select
                 value={props.response_type || 'keyboard'}
-                onChange={(e) => handlePropChange('response_type', e.target.value)}
-                className="w-full bg-cogni-card border border-slate-700 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-brand-500"
-              >
-                <option value="keyboard">Keyboard Keypress</option>
-                <option value="button">On-Screen Buttons / Choices</option>
-              </select>
+                onChange={(val) => handlePropChange('response_type', val)}
+                options={[
+                  { value: 'keyboard', label: 'Keyboard Keypress' },
+                  { value: 'button', label: 'On-Screen Buttons / Choices' },
+                ]}
+              />
             </div>
 
             {props.response_type === 'keyboard' ? (
@@ -293,18 +294,18 @@ export const NodePropertiesPanel: React.FC<NodePropertiesPanelProps> = ({
 
             <div>
               <label className="block text-slate-300 font-semibold mb-1">Operator</label>
-              <select
+              <Select
                 value={props.condition_operator || '=='}
-                onChange={(e) => handlePropChange('condition_operator', e.target.value)}
-                className="w-full bg-cogni-card border border-slate-700 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-brand-500 font-mono"
-              >
-                <option value="==">== (Equals)</option>
-                <option value="!=">!= (Not Equals)</option>
-                <option value=">">&gt; (Greater Than)</option>
-                <option value="<">&lt; (Less Than)</option>
-                <option value=">=">&gt;= (Greater or Equal)</option>
-                <option value="<=">&lt;= (Less or Equal)</option>
-              </select>
+                onChange={(val) => handlePropChange('condition_operator', val)}
+                options={[
+                  { value: '==', label: '== (Equals)' },
+                  { value: '!=', label: '!= (Not Equals)' },
+                  { value: '>', label: '> (Greater Than)' },
+                  { value: '<', label: '< (Less Than)' },
+                  { value: '>=', label: '>= (Greater or Equal)' },
+                  { value: '<=', label: '<= (Less or Equal)' },
+                ]}
+              />
             </div>
 
             <div>

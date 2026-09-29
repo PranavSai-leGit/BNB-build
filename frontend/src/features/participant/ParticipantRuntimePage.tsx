@@ -15,8 +15,10 @@ import {
   HelpCircle,
   Sparkles,
 } from 'lucide-react';
+import { Select } from '../../components/Select';
+import { ParticipantPreflight } from './ParticipantPreflight';
 
-type Step = 'consent' | 'demographics' | 'fullscreen_prompt' | 'experiment' | 'completed' | 'withdrawn';
+type Step = 'consent' | 'demographics' | 'preflight' | 'fullscreen_prompt' | 'experiment' | 'completed' | 'withdrawn';
 
 export const ParticipantRuntimePage: React.FC = () => {
   const { publicId } = useParams<{ publicId: string }>();
@@ -46,12 +48,12 @@ export const ParticipantRuntimePage: React.FC = () => {
   }, [publicId]);
 
   // Handle Consent Acceptance
-  const handleAcceptConsent = async () => {
+  const handleAcceptConsent = () => {
     const participantSchema = studyInfo?.participant_schema || [];
     if (participantSchema.length > 0) {
       setStep('demographics');
     } else {
-      await initializeSession({});
+      setStep('preflight');
     }
   };
 
@@ -95,10 +97,10 @@ export const ParticipantRuntimePage: React.FC = () => {
     }
   };
 
-  // Submit Demographics
-  const handleSubmitDemographics = async (e: React.FormEvent) => {
+  // Submit Demographics -> Proceed to Preflight Check
+  const handleSubmitDemographics = (e: React.FormEvent) => {
     e.preventDefault();
-    await initializeSession(demographics);
+    setStep('preflight');
   };
 
   // Request Fullscreen
@@ -297,19 +299,12 @@ export const ParticipantRuntimePage: React.FC = () => {
                 </label>
 
                 {f.type === 'select' ? (
-                  <select
-                    required={f.required}
+                  <Select
                     value={demographics[f.id] || ''}
-                    onChange={(e) => setDemographics({ ...demographics, [f.id]: e.target.value })}
-                    className="w-full bg-cogni-card border border-slate-700 rounded-xl px-3.5 py-2.5 text-slate-100 focus:outline-none focus:border-brand-500"
-                  >
-                    <option value="">-- Select an option --</option>
-                    {(f.options || []).map((opt: string) => (
-                      <option key={opt} value={opt}>
-                        {opt}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(val) => setDemographics({ ...demographics, [f.id]: val })}
+                    options={(f.options || []).map((opt: string) => ({ value: opt, label: opt }))}
+                    placeholder="-- Select an option --"
+                  />
                 ) : f.type === 'number' ? (
                   <input
                     type="number"
@@ -335,9 +330,22 @@ export const ParticipantRuntimePage: React.FC = () => {
             type="submit"
             className="w-full py-3 bg-brand-600 hover:bg-brand-500 text-white text-sm font-bold rounded-xl shadow-xl transition-all"
           >
-            Continue to Experiment
+            Continue to Environment Check
           </button>
         </form>
+      </div>
+    );
+  }
+
+  // Step: Preflight Environment & Timing Diagnostics
+  if (step === 'preflight') {
+    return (
+      <div className="min-h-screen bg-cogni-dark flex flex-col items-center justify-center p-4">
+        <ParticipantPreflight
+          studyName={studyInfo?.name || 'Cognitive Study'}
+          preflightConfig={studyInfo?.preflight_config || {}}
+          onProceed={() => initializeSession(demographics)}
+        />
       </div>
     );
   }

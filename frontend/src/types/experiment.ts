@@ -96,6 +96,16 @@ export interface ExperimentDefinition {
   nodes: ExperimentNode[];
   edges: ExperimentEdge[];
   randomization_groups: RandomizationGroup[];
+  preflight_config?: {
+    require_fullscreen?: boolean;
+    desktop_only?: boolean;
+    require_timing_api?: boolean;
+    require_keyboard?: boolean;
+    min_screen_width?: number;
+    min_screen_height?: number;
+  };
+  research_contract?: any;
+  quality_rules?: any[];
 }
 
 export interface ExperimentVersion {

@@ -5,6 +5,7 @@ import { Experiment } from '../../types/experiment';
 import { Modal } from '../../components/Modal';
 import { Card } from '../../components/Card';
 import { Pagination } from '../../components/Pagination';
+import { Select } from '../../components/Select';
 import {
   FlaskConical,
   Plus,
@@ -212,19 +213,21 @@ export const ExperimentsListPage: React.FC = () => {
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <Filter className="w-4 h-4 text-slate-400" />
-          <select
-            value={filterStatus}
-            onChange={(e) => {
-              setFilterStatus(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="bg-cogni-panel border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-brand-500"
-          >
-            <option value="all">All Statuses</option>
-            <option value="published">Published</option>
-            <option value="draft">Drafts</option>
-            <option value="archived">Archived</option>
-          </select>
+          <div className="w-44">
+            <Select
+              value={filterStatus}
+              onChange={(val) => {
+                setFilterStatus(val);
+                setCurrentPage(1);
+              }}
+              options={[
+                { value: 'all', label: 'All Statuses' },
+                { value: 'published', label: 'Published' },
+                { value: 'draft', label: 'Drafts' },
+                { value: 'archived', label: 'Archived' },
+              ]}
+            />
+          </div>
         </div>
       </div>
 
@@ -388,15 +391,15 @@ export const ExperimentsListPage: React.FC = () => {
             <label className="block text-slate-300 font-semibold mb-1">
               Data Retention Policy
             </label>
-            <select
-              value={newExpRetention}
-              onChange={(e) => setNewExpRetention(Number(e.target.value))}
-              className="w-full bg-cogni-card border border-slate-700 rounded-xl px-3.5 py-2.5 text-slate-100 focus:outline-none focus:border-brand-500"
-            >
-              <option value={30}>30 Days (Short-term evaluation)</option>
-              <option value={90}>90 Days (Standard research protocol)</option>
-              <option value={365}>1 Year (Longitudinal study)</option>
-            </select>
+            <Select
+              value={String(newExpRetention)}
+              onChange={(val) => setNewExpRetention(Number(val))}
+              options={[
+                { value: '30', label: '30 Days (Short-term evaluation)' },
+                { value: '90', label: '90 Days (Standard research protocol)' },
+                { value: '365', label: '1 Year (Longitudinal study)' },
+              ]}
+            />
           </div>
 
           <div className="pt-4 border-t border-slate-700/60 flex items-center justify-end gap-3">

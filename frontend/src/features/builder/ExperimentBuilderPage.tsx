@@ -23,6 +23,9 @@ import {
   Eye,
   Shuffle,
   Users,
+  FileCode2,
+  FileCheck,
+  BookOpen,
 } from 'lucide-react';
 import { experimentApi } from '../../api/experimentApi';
 import {
@@ -41,6 +44,10 @@ import { ExperimentLinterPanel } from '../intelligence/ExperimentLinterPanel';
 import { ExperimentDoctorPanel, DoctorFinding } from '../intelligence/ExperimentDoctorPanel';
 import { DataQualityTab } from '../intelligence/DataQualityTab';
 import { ResearchPassportTab } from '../intelligence/ResearchPassportTab';
+import { ResearchContractTab } from '../intelligence/ResearchContractTab';
+import { AnalysisReadinessTab } from '../intelligence/AnalysisReadinessTab';
+import { PilotModeTab } from '../intelligence/PilotModeTab';
+import { DataDictionaryTab } from '../intelligence/DataDictionaryTab';
 import { Card } from '../../components/Card';
 
 export const ExperimentBuilderPage: React.FC = () => {
@@ -51,8 +58,19 @@ export const ExperimentBuilderPage: React.FC = () => {
   const [definition, setDefinition] = useState<ExperimentDefinition | null>(null);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 
-  // Top-level tabs: Overview | Builder | Preview | Data Quality | Research Passport | Settings
-  const [activeTab, setActiveTab] = useState<'overview' | 'builder' | 'preview' | 'quality' | 'passport' | 'settings'>('builder');
+  // Top-level tabs: Overview | Contract | Builder | Pilot | Preview | Data Quality | Readiness | Dictionary | Passport | Settings
+  const [activeTab, setActiveTab] = useState<
+    | 'overview'
+    | 'contract'
+    | 'builder'
+    | 'pilot'
+    | 'preview'
+    | 'quality'
+    | 'readiness'
+    | 'dictionary'
+    | 'passport'
+    | 'settings'
+  >('builder');
 
   // Within Builder: Timeline vs Logic view
   const [builderSubView, setBuilderSubView] = useState<'timeline' | 'logic'>('timeline');
@@ -320,11 +338,11 @@ export const ExperimentBuilderPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Primary Workflow Tabs: Overview | Builder | Preview | Data Quality | Research Passport | Settings */}
-        <div className="flex items-center p-0.5 bg-slate-900 border border-slate-800 rounded-xl">
+        {/* Primary Workflow Tabs */}
+        <div className="flex items-center p-0.5 bg-slate-900 border border-slate-800 rounded-xl overflow-x-auto max-w-2xl">
           <button
             onClick={() => setActiveTab('overview')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
               activeTab === 'overview'
                 ? 'bg-cogni-card text-brand-300 shadow'
                 : 'text-slate-400 hover:text-slate-200'
@@ -334,8 +352,19 @@ export const ExperimentBuilderPage: React.FC = () => {
           </button>
 
           <button
+            onClick={() => setActiveTab('contract')}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+              activeTab === 'contract'
+                ? 'bg-cogni-card text-brand-300 shadow'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <FileCode2 className="w-3.5 h-3.5 text-brand-400" /> Contract
+          </button>
+
+          <button
             onClick={() => setActiveTab('builder')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
               activeTab === 'builder'
                 ? 'bg-cogni-card text-brand-300 shadow'
                 : 'text-slate-400 hover:text-slate-200'
@@ -345,8 +374,19 @@ export const ExperimentBuilderPage: React.FC = () => {
           </button>
 
           <button
+            onClick={() => setActiveTab('pilot')}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+              activeTab === 'pilot'
+                ? 'bg-cogni-card text-purple-300 shadow'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Play className="w-3.5 h-3.5 text-purple-400" /> Pilot
+          </button>
+
+          <button
             onClick={() => setActiveTab('preview')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
               activeTab === 'preview'
                 ? 'bg-cogni-card text-brand-300 shadow'
                 : 'text-slate-400 hover:text-slate-200'
@@ -357,29 +397,51 @@ export const ExperimentBuilderPage: React.FC = () => {
 
           <button
             onClick={() => setActiveTab('quality')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
               activeTab === 'quality'
                 ? 'bg-cogni-card text-cyan-300 shadow'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            <ShieldAlert className="w-3.5 h-3.5 text-cyan-400" /> Data Quality
+            <ShieldAlert className="w-3.5 h-3.5 text-cyan-400" /> Quality
+          </button>
+
+          <button
+            onClick={() => setActiveTab('readiness')}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+              activeTab === 'readiness'
+                ? 'bg-cogni-card text-emerald-300 shadow'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <FileCheck className="w-3.5 h-3.5 text-emerald-400" /> Readiness
+          </button>
+
+          <button
+            onClick={() => setActiveTab('dictionary')}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+              activeTab === 'dictionary'
+                ? 'bg-cogni-card text-blue-300 shadow'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <BookOpen className="w-3.5 h-3.5 text-blue-400" /> Codebook
           </button>
 
           <button
             onClick={() => setActiveTab('passport')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
               activeTab === 'passport'
                 ? 'bg-cogni-card text-brand-300 shadow'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            <FileCheck2 className="w-3.5 h-3.5 text-brand-400" /> Research Passport
+            <FileCheck2 className="w-3.5 h-3.5 text-brand-400" /> Passport
           </button>
 
           <button
             onClick={() => setActiveTab('settings')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
               activeTab === 'settings'
                 ? 'bg-cogni-card text-brand-300 shadow'
                 : 'text-slate-400 hover:text-slate-200'
@@ -521,6 +583,16 @@ export const ExperimentBuilderPage: React.FC = () => {
           </div>
         )}
 
+        {/* TAB: RESEARCH CONTRACT */}
+        {activeTab === 'contract' && (
+          <div className="flex-1 overflow-y-auto">
+            <ResearchContractTab
+              experimentId={experiment.id}
+              versionNumber={experiment.current_version_number}
+            />
+          </div>
+        )}
+
         {/* TAB 2: BUILDER (Timeline vs Logic, Inspector, Library, Linter & Doctor Actions) */}
         {activeTab === 'builder' && (
           <div className="flex-1 flex flex-col overflow-hidden">
@@ -633,10 +705,41 @@ export const ExperimentBuilderPage: React.FC = () => {
           </div>
         )}
 
+        {/* TAB: PILOT MODE */}
+        {activeTab === 'pilot' && (
+          <div className="flex-1 overflow-y-auto">
+            <PilotModeTab
+              experimentId={experiment.id}
+              publicId={experiment.public_id}
+              versionNumber={experiment.current_version_number}
+            />
+          </div>
+        )}
+
         {/* TAB 4: DATA QUALITY */}
         {activeTab === 'quality' && (
           <div className="flex-1 overflow-y-auto">
             <DataQualityTab experimentId={experiment.id} />
+          </div>
+        )}
+
+        {/* TAB: ANALYSIS READINESS */}
+        {activeTab === 'readiness' && (
+          <div className="flex-1 overflow-y-auto">
+            <AnalysisReadinessTab
+              experimentId={experiment.id}
+              versionNumber={experiment.current_version_number}
+            />
+          </div>
+        )}
+
+        {/* TAB: AUTOMATIC DATA DICTIONARY */}
+        {activeTab === 'dictionary' && (
+          <div className="flex-1 overflow-y-auto">
+            <DataDictionaryTab
+              experimentId={experiment.id}
+              versionNumber={experiment.current_version_number}
+            />
           </div>
         )}
 
@@ -706,6 +809,110 @@ export const ExperimentBuilderPage: React.FC = () => {
                 <div><strong>Study Title:</strong> {definition.consent.study_title || 'Default Title'}</div>
                 <div><strong>Retention Period:</strong> {experiment.retention_days} Days</div>
                 <div><strong>Ethics Framework:</strong> Privacy-focused pseudonymous data architecture</div>
+              </div>
+            </Card>
+
+            {/* Preflight Suitability Checks */}
+            <Card interactive={false} className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300 font-mono">
+                    Participant Preflight Suitability Criteria
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Configure mandatory vs advisory technical prerequisites verified before the study commences.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-300">
+                <label className="flex items-center gap-2 p-2.5 bg-slate-900/60 rounded-xl border border-slate-800 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={definition.preflight_config?.require_fullscreen ?? true}
+                    onChange={(e) => {
+                      const updated = {
+                        ...definition,
+                        preflight_config: {
+                          ...(definition.preflight_config || {}),
+                          require_fullscreen: e.target.checked,
+                        },
+                      };
+                      setDefinition(updated);
+                    }}
+                    className="rounded bg-slate-950 border-slate-700 text-brand-500 focus:ring-brand-500"
+                  />
+                  <div>
+                    <div className="font-semibold text-slate-200">Require Fullscreen Mode</div>
+                    <div className="text-[10px] text-slate-400">Verifies browser fullscreen support</div>
+                  </div>
+                </label>
+
+                <label className="flex items-center gap-2 p-2.5 bg-slate-900/60 rounded-xl border border-slate-800 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={definition.preflight_config?.desktop_only ?? false}
+                    onChange={(e) => {
+                      const updated = {
+                        ...definition,
+                        preflight_config: {
+                          ...(definition.preflight_config || {}),
+                          desktop_only: e.target.checked,
+                        },
+                      };
+                      setDefinition(updated);
+                    }}
+                    className="rounded bg-slate-950 border-slate-700 text-brand-500 focus:ring-brand-500"
+                  />
+                  <div>
+                    <div className="font-semibold text-slate-200">Desktop / Laptop Only</div>
+                    <div className="text-[10px] text-slate-400">Restricts touchscreen/mobile entry</div>
+                  </div>
+                </label>
+
+                <label className="flex items-center gap-2 p-2.5 bg-slate-900/60 rounded-xl border border-slate-800 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={definition.preflight_config?.require_timing_api ?? true}
+                    onChange={(e) => {
+                      const updated = {
+                        ...definition,
+                        preflight_config: {
+                          ...(definition.preflight_config || {}),
+                          require_timing_api: e.target.checked,
+                        },
+                      };
+                      setDefinition(updated);
+                    }}
+                    className="rounded bg-slate-950 border-slate-700 text-brand-500 focus:ring-brand-500"
+                  />
+                  <div>
+                    <div className="font-semibold text-slate-200">Require High-Precision Timing API</div>
+                    <div className="text-[10px] text-slate-400">Mandates sub-millisecond timer support</div>
+                  </div>
+                </label>
+
+                <label className="flex items-center gap-2 p-2.5 bg-slate-900/60 rounded-xl border border-slate-800 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={definition.preflight_config?.require_keyboard ?? true}
+                    onChange={(e) => {
+                      const updated = {
+                        ...definition,
+                        preflight_config: {
+                          ...(definition.preflight_config || {}),
+                          require_keyboard: e.target.checked,
+                        },
+                      };
+                      setDefinition(updated);
+                    }}
+                    className="rounded bg-slate-950 border-slate-700 text-brand-500 focus:ring-brand-500"
+                  />
+                  <div>
+                    <div className="font-semibold text-slate-200">Require Physical Keyboard</div>
+                    <div className="text-[10px] text-slate-400">Checks for physical keypress interface</div>
+                  </div>
+                </label>
               </div>
             </Card>
           </div>

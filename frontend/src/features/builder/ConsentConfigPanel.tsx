@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Modal } from '../../components/Modal';
 import { ConsentConfig, ParticipantField } from '../../types/experiment';
 import { Plus, Trash2, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { Select } from '../../components/Select';
 
 interface ConsentConfigPanelProps {
   isOpen: boolean;
@@ -264,16 +265,16 @@ export const ConsentConfigPanel: React.FC<ConsentConfigPanelProps> = ({
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-slate-400 mb-1">Type</label>
-                  <select
+                  <Select
                     value={newFieldType}
-                    onChange={(e) => setNewFieldType(e.target.value as any)}
-                    className="w-full bg-cogni-card border border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-100"
-                  >
-                    <option value="text">Text</option>
-                    <option value="number">Number</option>
-                    <option value="select">Dropdown Select</option>
-                    <option value="boolean">Yes / No (Boolean)</option>
-                  </select>
+                    onChange={(val) => setNewFieldType(val as any)}
+                    options={[
+                      { value: 'text', label: 'Text' },
+                      { value: 'number', label: 'Number' },
+                      { value: 'select', label: 'Dropdown Select' },
+                      { value: 'boolean', label: 'Yes / No (Boolean)' },
+                    ]}
+                  />
                 </div>
                 <div className="flex items-center gap-2 pt-5">
                   <input

@@ -5,6 +5,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
 } from 'lucide-react';
+import { Select } from './Select';
 
 export interface PaginationProps {
   currentPage: number;
@@ -63,20 +64,20 @@ export const Pagination: React.FC<PaginationProps> = ({
         {onPageSizeChange && (
           <div className="flex items-center gap-1.5 ml-2">
             <span className="text-[11px] text-slate-500">Per page:</span>
-            <select
-              value={pageSize}
-              onChange={(e) => {
-                onPageSizeChange(Number(e.target.value));
-                onPageChange(1);
-              }}
-              className="bg-cogni-panel border border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-brand-500"
-            >
-              {pageSizeOptions.map((opt) => (
-                <option key={opt} value={opt}>
-                  {opt}
-                </option>
-              ))}
-            </select>
+            <div className="w-20">
+              <Select
+                value={String(pageSize)}
+                onChange={(val) => {
+                  onPageSizeChange(Number(val));
+                  onPageChange(1);
+                }}
+                options={pageSizeOptions.map((opt) => ({
+                  value: String(opt),
+                  label: String(opt),
+                }))}
+                className="!text-xs"
+              />
+            </div>
           </div>
         )}
       </div>

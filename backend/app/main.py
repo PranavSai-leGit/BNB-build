@@ -16,11 +16,11 @@ from app.api.admin_routes import router as admin_router
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Ensure database schema is created and seeded on startup
-    Base.metadata.create_all(bind=engine)
     try:
+        Base.metadata.create_all(bind=engine)
         seed_database()
     except Exception as e:
-        print(f"Startup seeding notice: {e}")
+        print(f"Startup database initialization notice: {e}")
     yield
 
 app = FastAPI(
@@ -30,10 +30,10 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# CORS Middleware
+# CORS Middleware (Supports localhost, Vercel preview URLs, and production domains)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # Flexible for local dev & participant domains
+    allow_origin_regex=r"^https?://.*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

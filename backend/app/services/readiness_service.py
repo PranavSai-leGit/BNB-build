@@ -116,6 +116,9 @@ def evaluate_analysis_readiness(
             "details": "Dataset currently empty."
         })
 
+        for c in checks:
+            c["label"] = c.get("name")
+
         return {
             "overall_status": "review",
             "total_sessions": total_sessions,
@@ -128,7 +131,27 @@ def evaluate_analysis_readiness(
                 "errors": sum(1 for c in checks if c["status"] == "error")
             },
             "condition_distribution": {},
-            "missing_stats": {},
+            "missing_stats": {
+                "missing_rt_count": 0,
+                "missing_rt_pct": 0.0,
+                "missing_response_count": 0,
+                "missing_response_pct": 0.0,
+                "missing_accuracy_count": 0
+            },
+            "missing_data_summary": {
+                "missing_rt_count": 0,
+                "missing_rt_pct": 0.0,
+                "missing_response_count": 0,
+                "missing_response_pct": 0.0,
+                "missing_accuracy_count": 0
+            },
+            "stats": {
+                "missing_rt_count": 0,
+                "missing_rt_pct": 0.0,
+                "missing_response_count": 0,
+                "missing_response_pct": 0.0,
+                "missing_accuracy_count": 0
+            },
             "evaluated_at": datetime.utcnow().isoformat()
         }
 
@@ -250,6 +273,10 @@ def evaluate_analysis_readiness(
     else:
         overall_status = "ready"
 
+    # Ensure backward-compatible fields
+    for c in checks:
+        c["label"] = c.get("name")
+
     return {
         "overall_status": overall_status,
         "total_sessions": total_sessions,
@@ -263,6 +290,20 @@ def evaluate_analysis_readiness(
         },
         "condition_distribution": dict(condition_counts),
         "missing_stats": {
+            "missing_rt_count": missing_rt_count,
+            "missing_rt_pct": pct_missing_rt,
+            "missing_response_count": missing_response_count,
+            "missing_response_pct": pct_missing_resp,
+            "missing_accuracy_count": missing_accuracy_count
+        },
+        "missing_data_summary": {
+            "missing_rt_count": missing_rt_count,
+            "missing_rt_pct": pct_missing_rt,
+            "missing_response_count": missing_response_count,
+            "missing_response_pct": pct_missing_resp,
+            "missing_accuracy_count": missing_accuracy_count
+        },
+        "stats": {
             "missing_rt_count": missing_rt_count,
             "missing_rt_pct": pct_missing_rt,
             "missing_response_count": missing_response_count,

@@ -38,7 +38,10 @@ def generate_automatic_data_dictionary(
     for iv in contract.get("independent_variables", []):
         iv_names.add(iv.get("name", ""))
         for c in iv.get("conditions", []):
-            condition_names.add(c.get("name", ""))
+            if isinstance(c, dict):
+                condition_names.add(c.get("name", ""))
+            elif isinstance(c, str):
+                condition_names.add(c)
 
     dv_map = {}
     for dv in contract.get("dependent_variables", []):
@@ -237,15 +240,15 @@ def export_data_dictionary_csv(dictionary_data: Dict[str, Any]) -> str:
     writer = csv.writer(output)
 
     headers = [
-        "variable_name",
-        "label",
-        "data_type",
-        "unit",
-        "description",
-        "allowed_values",
-        "source",
-        "outcome_role",
-        "missing_value_meaning"
+        "Variable Name",
+        "Label",
+        "Type",
+        "Unit",
+        "Description",
+        "Allowed Values",
+        "Source",
+        "Outcome Role",
+        "Missing Value Meaning"
     ]
     writer.writerow(headers)
 
@@ -272,13 +275,13 @@ def export_data_dictionary_markdown(dictionary_data: Dict[str, Any]) -> str:
     lines.append(f"**Experiment Version:** v{dictionary_data.get('version_number', 1)}  ")
     lines.append(f"**Generated:** {dictionary_data.get('generated_at', '')}  ")
     lines.append(f"**Variables Documented:** {dictionary_data.get('variables_count', 0)}\n")
-    lines.append("| Variable | Type | Unit | Description | Allowed Values | Source |")
-    lines.append("| :--- | :--- | :--- | :--- | :--- | :--- |")
+    lines.append("| Variable Name | Label | Type | Unit | Description | Allowed Values | Source |")
+    lines.append("| :--- | :--- | :--- | :--- | :--- | :--- | :--- |")
 
     for var in dictionary_data.get("variables", []):
         desc = str(var.get("description", "")).replace("|", "\\|")
         allowed = str(var.get("allowed_values", "")).replace("|", "\\|")
-        lines.append(f"| `{var.get('name')}` | {var.get('type')} | {var.get('unit')} | {desc} | {allowed} | {var.get('source')} |")
+        lines.append(f"| `{var.get('name')}` | {var.get('label')} | {var.get('type')} | {var.get('unit')} | {desc} | {allowed} | {var.get('source')} |")
 
     lines.append("\n---\n*Preserved under Cognera Research Passport reproducibility specifications.*")
     return "\n".join(lines)

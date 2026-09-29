@@ -54,7 +54,7 @@ export const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
           </div>
           <div>
             <span className="text-xl font-bold tracking-tight text-white flex items-center gap-1.5">
-              Cogne<span className="text-cogni-cyan">ra</span>
+              <span className="text-cogni-cyan">Cognera</span>
               <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-brand-500/20 text-brand-300 font-mono font-semibold">
                 SaaS
               </span>
@@ -77,11 +77,10 @@ export const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
                 <Link
                   key={link.path}
                   to={link.path}
-                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium transition-all ${
-                    isActive
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium transition-all ${isActive
                       ? 'bg-brand-500/15 text-brand-300 border border-brand-500/30'
                       : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/50'
-                  }`}
+                    }`}
                 >
                   <Icon className="w-4 h-4" />
                   {link.label}

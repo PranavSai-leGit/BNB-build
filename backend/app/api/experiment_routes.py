@@ -205,6 +205,7 @@ def lint_experiment(
     return lint_experiment_definition(latest_ver.definition)
 
 @router.get("/{experiment_id}/doctor")
+@router.post("/{experiment_id}/doctor")
 def get_doctor_review(
     experiment_id: str,
     db: Session = Depends(get_db),
@@ -526,4 +527,26 @@ def download_data_dictionary_markdown(
         media_type="text/markdown",
         headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
+
+
+@router.get("/{experiment_id}/dictionary/export")
+def export_data_dictionary_by_format(
+    experiment_id: str,
+    format: str = "csv",
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Unified endpoint to export data dictionary in csv, markdown, or json format."""
+    if format.lower() == "markdown" or format.lower() == "md":
+        return download_data_dictionary_markdown(experiment_id, db, current_user)
+    elif format.lower() == "json":
+        from app.services.dictionary_service import generate_automatic_data_dictionary
+        exp = get_experiment_by_id(db, experiment_id, current_user)
+        latest_ver = db.query(ExperimentVersion).filter(
+            ExperimentVersion.experiment_id == exp.id,
+            ExperimentVersion.version_number == exp.current_version_number
+        ).first()
+        return generate_automatic_data_dictionary(exp, latest_ver, db)
+    else:
+        return download_data_dictionary_csv(experiment_id, db, current_user)
 

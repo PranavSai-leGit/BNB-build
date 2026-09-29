@@ -357,10 +357,12 @@ def lint_experiment_definition(definition: Dict[str, Any]) -> Dict[str, Any]:
 
     return {
         "valid": can_publish,
+        "is_valid": can_publish,
         "can_publish": can_publish,
         "errors": errors,
         "warnings": warnings,
         "info": info,
+        "findings": errors + warnings + info,
         "summary": {
             "errors": len(errors),
             "warnings": len(warnings),

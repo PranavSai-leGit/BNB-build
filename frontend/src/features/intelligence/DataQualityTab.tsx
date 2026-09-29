@@ -18,6 +18,8 @@ import { experimentApi } from '../../api/experimentApi';
 import { Card } from '../../components/Card';
 import { Modal } from '../../components/Modal';
 import { Pagination } from '../../components/Pagination';
+import { Select } from '../../components/Select';
+import { DataQualityRootCauseExplorer } from './DataQualityRootCauseExplorer';
 
 interface QualitySignal {
   type: string;
@@ -66,6 +68,7 @@ export const DataQualityTab: React.FC<DataQualityTabProps> = ({ experimentId }) 
   const [selectedSession, setSelectedSession] = useState<EvaluatedSession | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [qualitySubView, setQualitySubView] = useState<'sessions' | 'root_causes'>('sessions');
 
   // Custom Quality Rules Modal
   const [isRulesModalOpen, setIsRulesModalOpen] = useState(false);
@@ -145,7 +148,30 @@ export const DataQualityTab: React.FC<DataQualityTabProps> = ({ experimentId }) 
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl p-0.5">
+            <button
+              onClick={() => setQualitySubView('sessions')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                qualitySubView === 'sessions'
+                  ? 'bg-cogni-card text-cyan-300 shadow'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              Session Signals
+            </button>
+            <button
+              onClick={() => setQualitySubView('root_causes')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                qualitySubView === 'root_causes'
+                  ? 'bg-cogni-card text-brand-300 shadow'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              Root-Cause Explorer
+            </button>
+          </div>
+
           <button
             onClick={() => setIsRulesModalOpen(true)}
             className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl border border-slate-700 transition-colors"
@@ -239,40 +265,45 @@ export const DataQualityTab: React.FC<DataQualityTabProps> = ({ experimentId }) 
         </Card>
       )}
 
-      {/* Filter and Session List */}
-      <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="relative flex-1 w-full">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Search by participant pseudonym (e.g. P-8A9F1B2C)..."
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="w-full pl-10 pr-4 py-2 bg-cogni-panel border border-slate-800 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-cyan-500"
-            />
-          </div>
+      {qualitySubView === 'root_causes' ? (
+        <DataQualityRootCauseExplorer experimentId={experimentId} />
+      ) : (
+        /* Filter and Session List */
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="relative flex-1 w-full">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Search by participant pseudonym (e.g. P-8A9F1B2C)..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="w-full pl-10 pr-4 py-2 bg-cogni-panel border border-slate-800 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-cyan-500"
+              />
+            </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <Filter className="w-4 h-4 text-slate-400" />
-            <select
-              value={filterStatus}
-              onChange={(e) => {
-                setFilterStatus(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="bg-cogni-panel border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500"
-            >
-              <option value="all">All Quality Tiers</option>
-              <option value="good">Good Only</option>
-              <option value="review">Review Recommended</option>
-              <option value="poor">Poor Reliability</option>
-            </select>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <Filter className="w-4 h-4 text-slate-400" />
+              <div className="w-48">
+                <Select
+                  value={filterStatus}
+                  onChange={(val) => {
+                    setFilterStatus(val);
+                    setCurrentPage(1);
+                  }}
+                  options={[
+                    { value: 'all', label: 'All Quality Tiers' },
+                    { value: 'good', label: 'Good Only' },
+                    { value: 'review', label: 'Review Recommended' },
+                    { value: 'poor', label: 'Poor Reliability' },
+                  ]}
+                />
+              </div>
+            </div>
           </div>
-        </div>
 
         {/* Sessions Table */}
         {loading ? (
@@ -374,6 +405,7 @@ export const DataQualityTab: React.FC<DataQualityTabProps> = ({ experimentId }) 
           </div>
         )}
       </div>
+    )}
 
       {/* Participant Session Detail Modal */}
       {selectedSession && (
